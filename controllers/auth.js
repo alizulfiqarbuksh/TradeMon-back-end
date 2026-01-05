@@ -8,6 +8,7 @@ const User = require('../models/user');
 
 router.post('/sign-up', async (req, res) => {
   try {
+    console.log('in sign up')
     const { username, password } = req.body;
     // make sure the user does not exist
     const userInDatabase = await User.findOne({ username });

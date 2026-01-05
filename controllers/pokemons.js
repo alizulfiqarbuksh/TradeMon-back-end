@@ -5,13 +5,14 @@ const express = require('express')
 
 // moodel require 
 
-const Pokemon = require('') // ./models/pokemon
+const Pokemon = require('../models/pokemon') // ./models/pokemon
 
 //intialize router
 const router = express.Router()
 
 // POST 
 
+// create pokemon
 router.post('/', async (req, res) => {
 
     try{
@@ -28,13 +29,12 @@ router.post('/', async (req, res) => {
    
 })
 
-
+// get all pokemons
 router.get('/', async (req, res) =>{
-
-
     try{
 
-
+        const pokemons = await Pokemon.find({});
+        res.status(200).json({pokemons});
     }catch(error){
 
         console.log(error)
@@ -44,7 +44,7 @@ router.get('/', async (req, res) =>{
 })
 
 
-//get 
+//get one pokemon
 router.get('/:id', async (req, res) => {
 
     try{
