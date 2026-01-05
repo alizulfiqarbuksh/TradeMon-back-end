@@ -5,7 +5,7 @@ const express = require('express')
 
 // moodel require 
 
-const TradeOffer = require('') // ./models/tradeoffer
+const TradeOffer = require('../models/tradeOffer') // ./models/tradeoffer
 
 //intialize router
 const router = express.Router()
@@ -34,7 +34,8 @@ router.get('/', async (req, res) =>{
 
     try{
 
-
+        const tradeOffers = await TradeOffer.find({});
+        res.status(200).json({tradeOffers});
     }catch(error){
 
         console.log(error)
@@ -115,7 +116,7 @@ router.put('/:id', async (req,res)=>{
         //get id
         const {id} =req.params
         // find trade using id and update with req.body add new to see change immediatly with out it it will not show on postman when put
-        const trade = await trade.findByIdAndUpdate(id, req.body, {new:true})
+        const trade = await TradeOffer.findByIdAndUpdate(id, req.body, {new:true})
 
 
         if(!trade){
