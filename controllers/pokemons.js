@@ -33,7 +33,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) =>{
     try{
 
-        const pokemons = await Pokemon.find({});
+        const pokemons = await Pokemon.find({})
         res.status(200).json({pokemons});
     }catch(error){
 
@@ -53,7 +53,7 @@ router.get('/:id', async (req, res) => {
 
        // use model to find by id
 
-       const pokemon = await Pokemon.findById(id)
+       const pokemon = await Pokemon.findById(id).populate('owner', 'username')
 
        //if the pokemon not founded respond with 404
 
