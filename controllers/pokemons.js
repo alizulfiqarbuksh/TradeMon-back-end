@@ -6,6 +6,7 @@ const express = require('express')
 // moodel require 
 
 const Pokemon = require('../models/pokemon') // ./models/pokemon
+const verifyToken = require('../middleware/verify-token')
 
 //intialize router
 const router = express.Router()
@@ -34,6 +35,20 @@ router.get('/', async (req, res) =>{
     try{
 
         const pokemons = await Pokemon.find({})
+        res.status(200).json({pokemons});
+    }catch(error){
+
+        console.log(error)
+
+         res.status(500).json({error: 'Failed To get Pokemons'})
+    }
+})
+
+// get pokemons owned only
+router.get('/my-pokemons', verifyToken, async (req, res) =>{
+    try{
+
+        const pokemons = await Pokemon.find({owner: req.user._id })
         res.status(200).json({pokemons});
     }catch(error){
 
