@@ -113,6 +113,8 @@ router.delete('/:id', async (req, res)=>{
 router.put('/:id', async (req,res)=>{
     try{
 
+        
+
         //get id
         const {id} =req.params
         // find trade using id and update with req.body add new to see change immediatly with out it it will not show on postman when put
