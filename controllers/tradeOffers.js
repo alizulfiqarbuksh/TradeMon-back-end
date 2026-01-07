@@ -6,6 +6,11 @@ const express = require('express')
 // moodel require 
 
 const TradeOffer = require('../models/tradeOffer') // ./models/tradeoffer
+const Pokemon = require('../models/pokemon');
+
+
+const verifyToken = require('../middleware/verify-token');
+
 
 //intialize router
 const router = express.Router()
@@ -28,21 +33,25 @@ router.post('/', async (req, res) => {
    
 })
 
+router.get('/', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
 
-router.get('/', async (req, res) =>{
+    // Find trades where the user is sender or receiver
+    const tradeOffers = await TradeOffer.find({
+      $or: [
+        { sender_id: userId },
+        { receiver_id: userId }
+      ]
+    });
 
+    res.status(200).json({ tradeOffers });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Failed to get trades" });
+  }
+});
 
-    try{
-
-        const tradeOffers = await TradeOffer.find({});
-        res.status(200).json({tradeOffers});
-    }catch(error){
-
-        console.log(error)
-
-         res.status(500).json({error: 'Failed To get trades'})
-    }
-})
 
 
 //get 
@@ -135,6 +144,56 @@ router.put('/:id', async (req,res)=>{
 
 
 })
+
+router.put('/:id/respond', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body; // "accepted" or "rejected"
+
+    const trade = await TradeOffer.findById(id);
+    if (!trade) return res.status(404).json({ error: 'Trade not found' });
+
+    // Only pending trades can be acted on
+    if (trade.status !== 'pending') {
+      return res.status(400).json({ error: 'Trade already processed' });
+    }
+
+    if (action === 'rejected') {
+      trade.status = 'rejected';
+      await trade.save();
+      return res.status(200).json({ trade });
+    }
+
+    if (action === 'accepted') {
+      // swap pokemon owners
+      const senderPokemon = await Pokemon.findById(trade.sender_pokemon_id);
+      const receiverPokemon = await Pokemon.findById(trade.receiver_pokemon_id);
+
+      if (!senderPokemon || !receiverPokemon) {
+        return res.status(400).json({ error: 'Pokemon not found' });
+      }
+
+      // swap owners
+      const tempOwner = senderPokemon.owner;
+      senderPokemon.owner = receiverPokemon.owner;
+      receiverPokemon.owner = tempOwner;
+
+      await senderPokemon.save();
+      await receiverPokemon.save();
+
+      trade.status = 'accepted';
+      await trade.save();
+
+      return res.status(200).json({ trade });
+    }
+
+    res.status(400).json({ error: 'Invalid action' });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to respond to trade' });
+  }
+});
 
 // export the router (fixed)
 module.exports = router
