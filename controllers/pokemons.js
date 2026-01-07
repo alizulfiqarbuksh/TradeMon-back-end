@@ -92,14 +92,17 @@ router.get('/:id', async (req, res) => {
 })
 
 // DEL 
-router.delete('/:id', async (req, res)=>{
+router.delete('/:id', verifyToken, async (req, res)=>{
 
     try{
       // get the id from params
      
         const {id}= req.params
       // try to find pokemon using id 
-       const pokemon = await Pokemon.findByIdAndDelete(id)
+       const pokemon = await Pokemon.findByIdAndDelete({
+        _id: id,
+        owner: req.user._id,
+       })
 
        //if there is no pokemon send 404
        if(!pokemon){
