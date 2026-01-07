@@ -26,6 +26,11 @@ const pokemonSchema = mongoose.Schema({
     ref: 'User',
     required: true,
   },
+
+  image: {
+    type: String,
+    required: false,
+  }
 });
 
 pokemonSchema.set('toJSON', {
