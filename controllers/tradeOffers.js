@@ -43,7 +43,8 @@ router.get('/', verifyToken, async (req, res) => {
         { sender_id: userId },
         { receiver_id: userId }
       ]
-    });
+    }).populate('sender_id', 'username').populate('receiver_id', 'username').populate('sender_pokemon_id').populate('receiver_pokemon_id');
+    console.log(tradeOffers)
 
     res.status(200).json({ tradeOffers });
   } catch (error) {
