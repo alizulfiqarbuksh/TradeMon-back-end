@@ -153,6 +153,10 @@ router.put('/:id/respond', verifyToken, async (req, res) => {
     const trade = await TradeOffer.findById(id);
     if (!trade) return res.status(404).json({ error: 'Trade not found' });
 
+    if(!trade.receiver_id.equals(req.user._id)){
+      return res.status(403).json({error: 'Only the receiver can respond to this trade'})
+    }
+
     // Only pending trades can be acted on
     if (trade.status !== 'pending') {
       return res.status(400).json({ error: 'Trade already processed' });
