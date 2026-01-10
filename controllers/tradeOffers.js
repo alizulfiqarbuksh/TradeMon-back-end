@@ -21,7 +21,39 @@ router.post('/', async (req, res) => {
 
     try{
 
-    const trade = await TradeOffer.create(req.body)
+    if (!req.user?._id) return res.status(401).json({ error: 'Unauthorized' });
+
+    const userId = req.user._id
+    
+    const {sender_pokemon_id, receiver_pokemon_id} = req.body
+
+    if(!sender_pokemon_id || !receiver_pokemon_id) {
+      return res.status(400).json({ error: 'sender_pokemon_id and receiver_pokemon_id are required'})
+    }
+    
+    const senderPokemon = await Pokemon.findById(sender_pokemon_id);
+    const receiverPokemon = await Pokemon.findById(receiver_pokemon_id);
+
+    if(!senderPokemon || !receiverPokemon){
+
+       return res.status(400).json({  error: 'Pokemon not found' })
+    }
+
+    if(!senderPokemon.owner.equals(userId)){
+      return res.status(403).json({ error: 'You can only trade a card you own' });
+    }
+
+    if (receiverPokemon.owner.equals(userId)) {
+      return res.status(400).json({ error: 'You cannot trade for your own card' });
+    }
+
+    const trade = await TradeOffer.create({
+      sender_id: userId,
+      receiver_id: receiverPokemon.owner,     
+      sender_pokemon_id,
+      receiver_pokemon_id,
+      status: 'pending'
+    });
 
     res.status(201).json({trade}) 
     }
@@ -52,99 +84,6 @@ router.get('/', verifyToken, async (req, res) => {
     res.status(500).json({ error: "Failed to get trades" });
   }
 });
-
-
-
-//get 
-router.get('/:id', async (req, res) => {
-
-    try{
-       // get id from req.params
-       const {id} = req.params
-
-       // use model to find by id
-
-       const trade = await TradeOffer.findById(id)
-
-       //if the trade not founded respond with 404
-
-       if(!trade) {
-
-        res.status(404).json({error: 'Trade not found'})
-
-        
-       }else{
-           
-        res.status(200).json({trade})
-
-       }
-
-    }
-    catch(error)
-    {
-        console.log(error)
-        res.status(500).json({error: "Failed To Get Trade"})
-    }
-})
-
-// DEL 
-router.delete('/:id', async (req, res)=>{
-
-    try{
-      // get the id from params
-     
-        const {id}= req.params
-      // try to find trade using id 
-       const trade = await TradeOffer.findByIdAndDelete(id)
-
-       //if there is no trade send 404
-       if(!trade){
-
-         res.status(404).json({error: 'Trade not found'})
-       } else{
-        // use 204 if u dont want to send new thing
-        res.status(200).json({trade})
-       }
-
-    
-  }
-    catch(error){
-
-        console.log(error)
-
-        res.status(500).json({error: "failed to delete Trade"})
-    }
-
-
-
-})
-
-//PUT 
-router.put('/:id', async (req,res)=>{
-    try{
-
-        
-
-        //get id
-        const {id} =req.params
-        // find trade using id and update with req.body add new to see change immediatly with out it it will not show on postman when put
-        const trade = await TradeOffer.findByIdAndUpdate(id, req.body, {new:true})
-
-
-        if(!trade){
-            res.status(404).json({error: 'trade Not found'})
-
-        }else{
-               res.status(200).json({trade})
-        }
-    }
-    catch(error){
-        console.log(error)
-        res.status(500).json({error: 'failed to update trade'})
-    }
-
-
-})
 
 router.put('/:id/respond', verifyToken, async (req, res) => {
   try {

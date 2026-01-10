@@ -29,10 +29,10 @@ app.use(logger('dev'));
 // Public Routes
 app.use('/auth', authCtrl);
 app.use('/pokemon', pokemonCtrl);
-app.use('/tradeOffer', tradeOfferCtrl);
 
 // Protected Routes
 app.use(verifyToken);
+app.use('/tradeOffer', tradeOfferCtrl);
 
 app.get('/test', (req, res) => {
   console.log(req.user);
